@@ -1,0 +1,58 @@
+import torch
+import torch.nn as nn
+import torchvision.models as models
+import torchvision.transforms as transforms
+from PIL import Image
+from torch.autograd import Variable
+
+# Load pre-trained ResNet-152 model
+class EncoderCNN(nn.Module):
+    def __init__(self, embed_size):
+        super(EncoderCNN, self).__init__()
+        resnet = models.resnet152(pretrained=True, weights=models.ResNet152_Weights.IMAGENET1K_V1)
+        modules = list(resnet.children())[:-1]  # Remove the last layer (FC layer)
+        self.resnet = nn.Sequential(*modules)
+        self.embed = nn.Linear(resnet.fc.in_features, embed_size)
+        self.bn = nn.BatchNorm1d(embed_size)
+
+    def forward(self, images):
+        with torch.no_grad():
+            features = self.resnet(images)
+        features = features.view(features.size(0), -1)
+        features = self.bn(self.embed(features))
+        return features
+
+# Define the decoder RNN (you can implement your own caption generation logic here)
+def generate_caption(image_path):
+    # Your caption generation logic goes here
+    # Return the generated caption as a string
+    return "Sample caption"
+
+# Rest of your code remains unchanged
+
+# Example usage
+image_path = 'ffgh.jpg'  # Replace with the actual path to your image
+caption = generate_caption(image_path)
+print(f'Generated caption: {caption}')
+from PIL import Image, ImageDraw, ImageFont
+
+# Open the image
+image = Image.open("C:/Users/Shahb/OneDrive/Pictures/ffgh.jpg")  # Replace with the actual path to your image
+
+# Create a Draw object
+draw = ImageDraw.Draw(image)
+
+# Specify the caption
+caption = "Your caption goes here"
+
+# Set font and position
+font = ImageFont.truetype("arial.ttf", 24)
+position = (10, 10)  # Adjust as needed
+
+# Add the caption to the image
+draw.text(position, caption, fill="white", font=font)
+
+# Save the edited image
+image.save("captioned_image.jpg")
+
+print("Caption added successfully!")
